@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Cash Book{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Cash Book</h1>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>From</label>
+            <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>To</label>
+            <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Opening Balance</div>
+        <div class="stat-value">₹{{ "%.2f"|format(opening_balance) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Receipts</div>
+        <div class="stat-value success">₹{{ "%.2f"|format(total_receipts) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Payments</div>
+        <div class="stat-value warning">₹{{ "%.2f"|format(total_payments) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Closing Balance</div>
+        <div class="stat-value">₹{{ "%.2f"|format(closing_balance) }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Reference</th>
+                    <th class="text-right">Receipt</th>
+                    <th class="text-right">Payment</th>
+                    <th class="text-right">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background: #f5f5f5;">
+                    <td colspan="3"><strong>Opening Balance</strong></td>
+                    <td></td>
+                    <td></td>
+                    <td class="number"><strong>₹{{ "%.2f"|format(opening_balance) }}</strong></td>
+                </tr>
+                {% set running_balance = opening_balance %}
+                {% for txn in transactions %}
+                    {% if txn.receipt %}
+                        {% set running_balance = running_balance + txn.receipt|float %}
+                    {% endif %}
+                    {% if txn.payment %}
+                        {% set running_balance = running_balance - txn.payment|float %}
+                    {% endif %}
+                    <tr>
+                        <td>{{ txn.transaction_date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ txn.description }}</td>
+                        <td>{{ txn.reference_type or '' }} {{ txn.reference_number or '' }}</td>
+                        <td class="number text-success">
+                            {% if txn.receipt %}₹{{ "%.2f"|format(txn.receipt|float) }}{% endif %}
+                        </td>
+                        <td class="number text-danger">
+                            {% if txn.payment %}₹{{ "%.2f"|format(txn.payment|float) }}{% endif %}
+                        </td>
+                        <td class="number">₹{{ "%.2f"|format(running_balance) }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No transactions</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td colspan="3">Closing Balance</td>
+                    <td class="number">₹{{ "%.2f"|format(total_receipts) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(total_payments) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(closing_balance) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

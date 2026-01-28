@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}{{ employee.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">{{ employee.name }}</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('payroll.edit_employee', id=employee.id) }}" class="btn btn-secondary">Edit</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Basic Salary</div>
+        <div class="stat-value">₹{{ "%.0f"|format(employee.basic_salary|float) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Department</div>
+        <div class="stat-value">{{ employee.department or '-' }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Designation</div>
+        <div class="stat-value">{{ employee.designation or '-' }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Status</div>
+        <div class="stat-value">
+            {% if employee.is_active %}
+            <span class="badge badge-success">Active</span>
+            {% else %}
+            <span class="badge badge-danger">Inactive</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="card" style="flex: 1;">
+        <div class="card-header">Personal Details</div>
+        <div class="card-body">
+            <table>
+                <tr><td class="text-muted">Code</td><td>{{ employee.code or '-' }}</td></tr>
+                <tr><td class="text-muted">Phone</td><td>{{ employee.phone or '-' }}</td></tr>
+                <tr><td class="text-muted">Email</td><td>{{ employee.email or '-' }}</td></tr>
+                <tr><td class="text-muted">Aadhar</td><td>{{ employee.aadhar_number or '-' }}</td></tr>
+                <tr><td class="text-muted">Address</td><td>{{ employee.address or '-' }}</td></tr>
+                <tr><td class="text-muted">Joining Date</td><td>{{ employee.joining_date.strftime('%d-%m-%Y') if employee.joining_date else '-' }}</td></tr>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card" style="flex: 1;">
+        <div class="card-header">Salary Structure</div>
+        <div class="card-body">
+            <table>
+                <tr><td class="text-muted">Basic Salary</td><td class="text-right">₹{{ "%.2f"|format(employee.basic_salary|float) }}</td></tr>
+                <tr><td class="text-muted">HRA</td><td class="text-right">₹{{ "%.2f"|format(employee.hra|float) if employee.hra else '0.00' }}</td></tr>
+                <tr><td class="text-muted">Other Allowances</td><td class="text-right">₹{{ "%.2f"|format(employee.other_allowance|float) if employee.other_allowance else '0.00' }}</td></tr>
+                <tr style="border-top: 1px solid #ddd;"><td class="text-muted"><strong>Gross</strong></td><td class="text-right"><strong>₹{{ "%.2f"|format((employee.basic_salary|float) + (employee.hra|float if employee.hra else 0) + (employee.other_allowance|float if employee.other_allowance else 0)) }}</strong></td></tr>
+                <tr><td class="text-muted">PF Deduction</td><td class="text-right">-₹{{ "%.2f"|format(employee.pf_deduction|float) if employee.pf_deduction else '0.00' }}</td></tr>
+                <tr><td class="text-muted">ESI Deduction</td><td class="text-right">-₹{{ "%.2f"|format(employee.esi_deduction|float) if employee.esi_deduction else '0.00' }}</td></tr>
+                <tr><td class="text-muted">TDS</td><td class="text-right">-₹{{ "%.2f"|format(employee.tds|float) if employee.tds else '0.00' }}</td></tr>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card" style="flex: 1;">
+        <div class="card-header">Bank Details</div>
+        <div class="card-body">
+            <table>
+                <tr><td class="text-muted">Bank</td><td>{{ employee.bank_name or '-' }}</td></tr>
+                <tr><td class="text-muted">Account No</td><td>{{ employee.bank_account or '-' }}</td></tr>
+                <tr><td class="text-muted">IFSC</td><td>{{ employee.bank_ifsc or '-' }}</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Recent Salary Slips</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Month/Year</th>
+                    <th class="text-right">Days Worked</th>
+                    <th class="text-right">Gross</th>
+                    <th class="text-right">Deductions</th>
+                    <th class="text-right">Net Salary</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slip in employee.salary_slips|sort(attribute='id', reverse=true)|batch(12)|first %}
+                <tr>
+                    <td>{{ ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][slip.salary_month] }} {{ slip.salary_year }}</td>
+                    <td class="number">{{ slip.days_worked }}/{{ slip.total_working_days }}</td>
+                    <td class="number">₹{{ "%.0f"|format(slip.gross_salary|float) if slip.gross_salary else '-' }}</td>
+                    <td class="number">₹{{ "%.0f"|format(slip.total_deductions|float) if slip.total_deductions else '-' }}</td>
+                    <td class="number"><strong>₹{{ "%.0f"|format(slip.net_salary|float) if slip.net_salary else '-' }}</strong></td>
+                    <td>
+                        {% if slip.is_paid %}
+                        <span class="badge badge-success">Paid</span>
+                        {% else %}
+                        <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('payroll.view_salary_slip', id=slip.id) }}" class="btn btn-sm btn-secondary">View</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No salary slips</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

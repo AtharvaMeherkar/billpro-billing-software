@@ -1,0 +1,29 @@
+{
+    "printer_type": "windows",
+    "printer_name": "Default",
+    "usb_vendor_id": null,
+    "usb_product_id": null,
+    "serial_port": "COM1",
+    "serial_baudrate": 9600,
+    "paper_width": 58,
+    "encoding": "utf-8",
+    "cut_paper": true,
+    "open_drawer": false,
+    "header": {
+        "line1": "Morning Basket",
+        "line2": "Sai Siddhi Niwas, Lane no 04, Bibewadi",
+        "line3": "8698292415",
+        "line4": "morningbasket07@gmail.com"
+    },
+    "footer": {
+        "line1": "Thank you for your purchase!",
+        "line2": "You may check our different baskets at the WhatsApp Business Catalogue ",
+        "line3": "Visit again"
+    },
+    "thermal_settings": {
+        "font_size": "normal",
+        "bold_header": true,
+        "line_spacing": 1,
+        "margin_left": 0
+    }
+}

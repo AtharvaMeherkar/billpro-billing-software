@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Product Inventory</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('inventory.add') }}" class="btn btn-primary">+ Add Product</a>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>Search</label>
+            <input type="text" name="search" value="{{ request.args.get('search', '') }}" 
+                   placeholder="Name or Code" class="form-control form-control-sm" style="width: 200px;">
+        </div>
+        <div class="filter-group">
+            <label>Category</label>
+            <select name="category" class="form-control form-control-sm">
+                <option value="">All</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if request.args.get('category')|int == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Product Name</th>
+                    <th>HSN</th>
+                    <th>GST %</th>
+                    <th class="text-right">Cost Price</th>
+                    <th class="text-right">Sell Price</th>
+                    <th class="text-right">Stock</th>
+                    <th>Unit</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if products.items %}
+                    {% for p in products.items %}
+                    <tr>
+                        <td>{{ p.code or '-' }}</td>
+                        <td><a href="{{ url_for('inventory.view', id=p.id) }}">{{ p.name }}</a></td>
+                        <td>{{ p.hsn_code or '-' }}</td>
+                        <td>{{ p.gst_percent }}%</td>
+                        <td class="number">₹{{ "%.2f"|format(p.cost_price|float) }}</td>
+                        <td class="number">₹{{ "%.2f"|format(p.selling_price|float) }}</td>
+                        <td class="number {% if p.current_stock <= p.low_stock_threshold %}text-danger{% endif %}">
+                            {{ p.current_stock }}
+                            {% if p.current_stock <= p.low_stock_threshold %}
+                                <span class="badge badge-danger">Low</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ p.unit }}</td>
+                        <td class="actions">
+                            <a href="{{ url_for('inventory.edit', id=p.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">No products found</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if products.pages > 1 %}
+<div class="pagination">
+    {% if products.has_prev %}
+        <a href="{{ url_for('inventory.index', page=products.prev_num, **request.args) }}">← Prev</a>
+    {% endif %}
+    {% for page in products.iter_pages() %}
+        {% if page %}
+            <a href="{{ url_for('inventory.index', page=page, **request.args) }}" 
+               class="{% if page == products.page %}active{% endif %}">{{ page }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if products.has_next %}
+        <a href="{{ url_for('inventory.index', page=products.next_num, **request.args) }}">Next →</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

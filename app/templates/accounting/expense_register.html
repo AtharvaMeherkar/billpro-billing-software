@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Expense Register{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Expense Register</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('accounting.add_expense') }}" class="btn btn-primary">+ Add Expense</a>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>From</label>
+            <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>To</label>
+            <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>Category</label>
+            <select name="category" class="form-control form-control-sm">
+                <option value="">All</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if request.args.get('category')|int == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Expenses</div>
+        <div class="stat-value warning">₹{{ "%.2f"|format(total) }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Paid To</th>
+                    <th>Mode</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exp in expenses %}
+                <tr>
+                    <td>{{ exp.expense_date.strftime('%d-%m-%Y') }}</td>
+                    <td>{{ exp.category.name if exp.category else '-' }}</td>
+                    <td>{{ exp.description }}</td>
+                    <td>{{ exp.vendor_name or '-' }}</td>
+                    <td>{{ exp.payment_mode or '-' }}</td>
+                    <td class="number">₹{{ "%.2f"|format(exp.amount|float) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">No expenses in this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td colspan="5">Total</td>
+                    <td class="number">₹{{ "%.2f"|format(total) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

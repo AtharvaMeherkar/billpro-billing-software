@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice {{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Invoice {{ invoice.invoice_number }}</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('billing.preview_thermal', id=invoice.id) }}" class="btn btn-secondary" target="_blank">👁️ Preview Bill</a>
+        <a href="{{ url_for('billing.print_invoice', id=invoice.id) }}" class="btn btn-primary" target="_blank">🖨️ Print A4</a>
+        <a href="{{ url_for('billing.print_thermal', id=invoice.id) }}" class="btn btn-secondary">🧾 Thermal Print</a>
+        {% if invoice.status != 'CANCELLED' %}
+        <form method="post" action="{{ url_for('billing.cancel', id=invoice.id) }}" style="display: inline;">
+            <button type="submit" class="btn btn-danger" data-confirm="Are you sure you want to cancel this invoice?">Cancel Invoice</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{% if invoice.status == 'CANCELLED' %}
+<div class="flash-message flash-warning">
+    <strong>This invoice has been cancelled.</strong>
+</div>
+{% endif %}
+
+<div class="form-row">
+    <!-- Invoice Details -->
+    <div class="card" style="flex: 1;">
+        <div class="card-header">Invoice Details</div>
+        <div class="card-body">
+            <table>
+                <tr>
+                    <td class="text-muted">Invoice Number</td>
+                    <td><strong>{{ invoice.invoice_number }}</strong></td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Date</td>
+                    <td>{{ invoice.invoice_date.strftime('%d-%m-%Y') }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Invoice Type</td>
+                    <td>{{ 'GST Invoice' if invoice.is_gst_invoice else 'Non-GST Invoice' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Payment Mode</td>
+                    <td>{{ invoice.payment_mode }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Status</td>
+                    <td>
+                        {% if invoice.status == 'CANCELLED' %}
+                            <span class="badge badge-danger">Cancelled</span>
+                        {% elif invoice.payment_status == 'PAID' %}
+                            <span class="badge badge-success">Paid</span>
+                        {% else %}
+                            <span class="badge badge-warning">Unpaid</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Customer Details -->
+    <div class="card" style="flex: 1;">
+        <div class="card-header">Customer Details</div>
+        <div class="card-body">
+            <table>
+                <tr>
+                    <td class="text-muted">Name</td>
+                    <td><strong>{{ invoice.party.name }}</strong></td>
+                </tr>
+                {% if invoice.party.gstin %}
+                <tr>
+                    <td class="text-muted">GSTIN</td>
+                    <td>{{ invoice.party.gstin }}</td>
+                </tr>
+                {% endif %}
+                {% if invoice.party.phone %}
+                <tr>
+                    <td class="text-muted">Phone</td>
+                    <td>{{ invoice.party.phone }}</td>
+                </tr>
+                {% endif %}
+                {% if invoice.party.full_address %}
+                <tr>
+                    <td class="text-muted">Address</td>
+                    <td>{{ invoice.party.full_address }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Line Items -->
+<div class="card">
+    <div class="card-header">Invoice Items</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>HSN</th>
+                    <th class="text-right">Qty</th>
+                    <th class="text-right">Rate</th>
+                    <th class="text-right">Taxable</th>
+                    {% if invoice.is_gst_invoice %}
+                        {% if invoice.is_igst %}
+                            <th class="text-right">IGST</th>
+                        {% else %}
+                            <th class="text-right">CGST</th>
+                            <th class="text-right">SGST</th>
+                        {% endif %}
+                    {% endif %}
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ item.description or item.product.name }}</td>
+                    <td>{{ item.hsn_code or '-' }}</td>
+                    <td class="number">{{ item.quantity }} {{ item.unit }}</td>
+                    <td class="number">₹{{ "%.2f"|format(item.rate|float) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(item.taxable_amount|float) }}</td>
+                    {% if invoice.is_gst_invoice %}
+                        {% if invoice.is_igst %}
+                            <td class="number">₹{{ "%.2f"|format(item.igst_amount|float) }} ({{ item.igst_percent }}%)</td>
+                        {% else %}
+                            <td class="number">₹{{ "%.2f"|format(item.cgst_amount|float) }} ({{ item.cgst_percent }}%)</td>
+                            <td class="number">₹{{ "%.2f"|format(item.sgst_amount|float) }} ({{ item.sgst_percent }}%)</td>
+                        {% endif %}
+                    {% endif %}
+                    <td class="number"><strong>₹{{ "%.2f"|format(item.total_amount|float) }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Totals -->
+<div class="card" style="max-width: 400px; margin-left: auto;">
+    <div class="card-body">
+        <table style="width: 100%;">
+            <tr>
+                <td>Subtotal:</td>
+                <td class="text-right">₹{{ "%.2f"|format(invoice.subtotal|float) }}</td>
+            </tr>
+            {% if invoice.is_gst_invoice %}
+                {% if invoice.is_igst %}
+                    <tr>
+                        <td>IGST:</td>
+                        <td class="text-right">₹{{ "%.2f"|format(invoice.igst_amount|float) }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td>CGST:</td>
+                        <td class="text-right">₹{{ "%.2f"|format(invoice.cgst_amount|float) }}</td>
+                    </tr>
+                    <tr>
+                        <td>SGST:</td>
+                        <td class="text-right">₹{{ "%.2f"|format(invoice.sgst_amount|float) }}</td>
+                    </tr>
+                {% endif %}
+            {% endif %}
+            {% if invoice.round_off %}
+            <tr>
+                <td>Round Off:</td>
+                <td class="text-right">₹{{ "%.2f"|format(invoice.round_off|float) }}</td>
+            </tr>
+            {% endif %}
+            <tr style="border-top: 2px solid #333; font-size: 18px;">
+                <td><strong>Total:</strong></td>
+                <td class="text-right"><strong>₹{{ "%.2f"|format(invoice.total_amount|float) }}</strong></td>
+            </tr>
+        </table>
+        
+        <div class="mt-md text-muted" style="font-size: 12px;">
+            {{ amount_words }}
+        </div>
+    </div>
+</div>
+
+{% if invoice.notes %}
+<div class="card">
+    <div class="card-header">Notes</div>
+    <div class="card-body">
+        {{ invoice.notes }}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

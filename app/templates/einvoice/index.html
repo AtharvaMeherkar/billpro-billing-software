@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}E-Invoice{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">E-Invoice Generator (Offline)</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">E-Invoices Generated</div>
+        <div class="stat-value">{{ generated_count }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">GST Invoices (Eligible for E-Invoice)</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice No</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>GSTIN</th>
+                    <th class="text-right">Amount</th>
+                    <th>E-Invoice</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if invoices %}
+                    {% for inv in invoices %}
+                    <tr>
+                        <td>{{ inv.invoice_number }}</td>
+                        <td>{{ inv.invoice_date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ inv.party.name }}</td>
+                        <td>{{ inv.party.gstin or '-' }}</td>
+                        <td class="number">₹{{ "%.2f"|format(inv.total_amount|float) }}</td>
+                        <td>
+                            {% if inv.einvoice_generated %}
+                                <span class="badge badge-success">Generated</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            {% if inv.einvoice_generated %}
+                                <a href="{{ url_for('einvoice.view', id=inv.id) }}" class="btn btn-sm btn-secondary">View JSON</a>
+                                <a href="{{ url_for('einvoice.download', id=inv.id) }}" class="btn btn-sm btn-secondary">Download</a>
+                            {% else %}
+                                <form method="post" action="{{ url_for('einvoice.generate', id=inv.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-primary">Generate JSON</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No GST invoices found</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">About E-Invoice</div>
+    <div class="card-body">
+        <p><strong>Note:</strong> This module generates GST-compliant e-invoice JSON files for offline use.</p>
+        <ul>
+            <li>JSON files are saved locally in the <code>einvoices/</code> folder</li>
+            <li>These files can be uploaded to the GST portal for IRN generation</li>
+            <li>No internet connection is required for JSON generation</li>
+            <li>JSON format follows the official e-invoice schema (Version 1.1)</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

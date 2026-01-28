@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Printer Settings{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Printer Settings</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('printing.test_print') }}" class="btn btn-secondary">🖨️ Test Print</a>
+    </div>
+</div>
+
+<form method="post" action="{{ url_for('printing.settings') }}">
+    <div class="card">
+        <div class="card-header">Printer Configuration</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Printer Type</label>
+                    <select name="printer_type" class="form-control" id="printer_type" onchange="togglePrinterOptions()">
+                        <option value="windows" {% if config.printer_type == 'windows' %}selected{% endif %}>Windows Printer</option>
+                        <option value="usb" {% if config.printer_type == 'usb' %}selected{% endif %}>USB ESC/POS</option>
+                        <option value="serial" {% if config.printer_type == 'serial' %}selected{% endif %}>Serial/COM Port</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Paper Width</label>
+                    <select name="paper_width" class="form-control">
+                        <option value="80" {% if config.paper_width == 80 %}selected{% endif %}>80mm (Standard)</option>
+                        <option value="58" {% if config.paper_width == 58 %}selected{% endif %}>58mm (Small)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="windows-options">
+                <div class="form-group">
+                    <label class="form-label">Printer Name</label>
+                    <select name="printer_name" class="form-control">
+                        <option value="Default">Default Printer</option>
+                        {% for p in printers %}
+                        <option value="{{ p }}" {% if config.printer_name == p %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div id="usb-options" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">USB Vendor ID (Hex)</label>
+                        <input type="text" name="usb_vendor_id" value="{{ config.usb_vendor_id or '' }}" class="form-control" placeholder="0x04b8">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">USB Product ID (Hex)</label>
+                        <input type="text" name="usb_product_id" value="{{ config.usb_product_id or '' }}" class="form-control" placeholder="0x0202">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="serial-options" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">COM Port</label>
+                        <input type="text" name="serial_port" value="{{ config.serial_port or 'COM1' }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Baud Rate</label>
+                        <select name="serial_baudrate" class="form-control">
+                            <option value="9600" {% if config.serial_baudrate == 9600 %}selected{% endif %}>9600</option>
+                            <option value="19200" {% if config.serial_baudrate == 19200 %}selected{% endif %}>19200</option>
+                            <option value="115200" {% if config.serial_baudrate == 115200 %}selected{% endif %}>115200</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-check">
+                        <input type="checkbox" name="cut_paper" {% if config.cut_paper %}checked{% endif %}>
+                        Cut paper after print
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-check">
+                        <input type="checkbox" name="open_drawer" {% if config.open_drawer %}checked{% endif %}>
+                        Open cash drawer
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Receipt Header (Printed at top of bill)</div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="form-label">Line 1 (Usually Company Name)</label>
+                <input type="text" name="header_line1" value="{{ config.header.line1 if config.header else '{{company_name}}' }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Line 2</label>
+                <input type="text" name="header_line2" value="{{ config.header.line2 if config.header else '{{company_address}}' }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Line 3</label>
+                <input type="text" name="header_line3" value="{{ config.header.line3 if config.header else 'Ph: {{company_phone}}' }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Line 4</label>
+                <input type="text" name="header_line4" value="{{ config.header.line4 if config.header else 'GSTIN: {{company_gstin}}' }}" class="form-control">
+            </div>
+            <small class="text-muted">Available placeholders: {{company_name}}, {{company_address}}, {{company_phone}}, {{company_gstin}}</small>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Receipt Footer (Printed at bottom of bill)</div>
+        <div class="card-body">
+            <div class="form-group">
+                <label class="form-label">Line 1</label>
+                <input type="text" name="footer_line1" value="{{ config.footer.line1 if config.footer else 'Thank you for your business!' }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Line 2</label>
+                <input type="text" name="footer_line2" value="{{ config.footer.line2 if config.footer else 'Visit Again' }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Line 3</label>
+                <input type="text" name="footer_line3" value="{{ config.footer.line3 if config.footer else '' }}" class="form-control">
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-lg">Save Settings</button>
+    </div>
+</form>
+
+<script>
+function togglePrinterOptions() {
+    const type = document.getElementById('printer_type').value;
+    document.getElementById('windows-options').style.display = type === 'windows' ? 'block' : 'none';
+    document.getElementById('usb-options').style.display = type === 'usb' ? 'block' : 'none';
+    document.getElementById('serial-options').style.display = type === 'serial' ? 'block' : 'none';
+}
+document.addEventListener('DOMContentLoaded', togglePrinterOptions);
+</script>
+{% endblock %}

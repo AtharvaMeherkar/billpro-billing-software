@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">{{ product.name }}</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('inventory.edit', id=product.id) }}" class="btn btn-secondary">Edit</a>
+        <a href="{{ url_for('inventory.adjust_stock', id=product.id) }}" class="btn btn-primary">Adjust Stock</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Current Stock</div>
+        <div class="stat-value {% if product.current_stock <= product.low_stock_threshold %}text-danger{% else %}text-success{% endif %}">
+            {{ product.current_stock }} {{ product.unit }}
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Selling Price</div>
+        <div class="stat-value">₹{{ "%.2f"|format(product.selling_price|float) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Cost Price</div>
+        <div class="stat-value">₹{{ "%.2f"|format(product.cost_price|float) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">GST</div>
+        <div class="stat-value">{{ product.gst_percent }}%</div>
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="card" style="flex: 1;">
+        <div class="card-header">Product Details</div>
+        <div class="card-body">
+            <table>
+                <tr><td class="text-muted">Code</td><td>{{ product.code or '-' }}</td></tr>
+                <tr><td class="text-muted">Category</td><td>{{ product.category.name if product.category else '-' }}</td></tr>
+                <tr><td class="text-muted">HSN Code</td><td>{{ product.hsn_code or '-' }}</td></tr>
+                <tr><td class="text-muted">Unit</td><td>{{ product.unit }}</td></tr>
+                <tr><td class="text-muted">MRP</td><td>₹{{ "%.2f"|format(product.mrp|float) if product.mrp else '-' }}</td></tr>
+                <tr><td class="text-muted">Low Stock Alert</td><td>{{ product.low_stock_threshold }} {{ product.unit }}</td></tr>
+                <tr><td class="text-muted">Description</td><td>{{ product.description or '-' }}</td></tr>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card" style="flex: 1;">
+        <div class="card-header">Stock Value</div>
+        <div class="card-body">
+            <table>
+                <tr>
+                    <td class="text-muted">At Cost Price</td>
+                    <td>₹{{ "%.2f"|format((product.current_stock|float) * (product.cost_price|float)) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">At Selling Price</td>
+                    <td>₹{{ "%.2f"|format((product.current_stock|float) * (product.selling_price|float)) }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Recent Stock Movements</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Reference</th>
+                    <th class="text-right">Qty</th>
+                    <th class="text-right">Before</th>
+                    <th class="text-right">After</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movements %}
+                <tr>
+                    <td>{{ m.created_at.strftime('%d-%m-%Y %H:%M') if m.created_at else '-' }}</td>
+                    <td>
+                        <span class="badge {% if m.movement_type == 'IN' %}badge-success{% elif m.movement_type == 'OUT' %}badge-danger{% else %}badge-secondary{% endif %}">
+                            {{ m.movement_type }}
+                        </span>
+                    </td>
+                    <td>{{ m.reference_type or '-' }}</td>
+                    <td class="number">{{ m.quantity }}</td>
+                    <td class="number">{{ m.stock_before }}</td>
+                    <td class="number">{{ m.stock_after }}</td>
+                    <td>{{ m.notes or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No stock movements</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

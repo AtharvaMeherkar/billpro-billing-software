@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Salary Slips{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Salary Slips - {{ ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month-1] }} {{ year }}</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('payroll.process_payroll') }}" class="btn btn-primary">Process Payroll</a>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>Month</label>
+            <select name="month" class="form-control form-control-sm">
+                {% for m in range(1, 13) %}
+                <option value="{{ m }}" {% if m == month %}selected{% endif %}>
+                    {{ ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1] }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Year</label>
+            <select name="year" class="form-control form-control-sm">
+                {% for y in range(year - 2, year + 2) %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Slips Generated</div>
+        <div class="stat-value">{{ slips|length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Paid Amount</div>
+        <div class="stat-value success">₹{{ "%.2f"|format(total_paid) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Pending</div>
+        <div class="stat-value warning">₹{{ "%.2f"|format(total_payable) }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Designation</th>
+                    <th class="text-right">Gross</th>
+                    <th class="text-right">Deductions</th>
+                    <th class="text-right">Net Pay</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if slips %}
+                    {% for slip in slips %}
+                    <tr>
+                        <td>{{ slip.employee.name }}</td>
+                        <td>{{ slip.employee.designation or '-' }}</td>
+                        <td class="number">₹{{ "%.2f"|format(slip.gross_salary|float) }}</td>
+                        <td class="number">₹{{ "%.2f"|format(slip.total_deductions|float) }}</td>
+                        <td class="number"><strong>₹{{ "%.2f"|format(slip.net_salary|float) }}</strong></td>
+                        <td>
+                            {% if slip.is_paid %}
+                                <span class="badge badge-success">Paid</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            <a href="{{ url_for('payroll.view_salary_slip', id=slip.id) }}" class="btn btn-sm btn-secondary">View</a>
+                            {% if not slip.is_paid %}
+                            <form method="post" action="{{ url_for('payroll.pay_salary', id=slip.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-primary">Pay</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            No salary slips for this month. 
+                            <a href="{{ url_for('payroll.process_payroll') }}">Process payroll</a> to generate slips.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

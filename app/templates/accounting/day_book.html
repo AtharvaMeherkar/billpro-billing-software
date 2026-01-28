@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Day Book{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Day Book - {{ selected_date }}</h1>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>Date</label>
+            <input type="date" name="date" value="{{ selected_date }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">View</button>
+        </div>
+    </form>
+</div>
+
+<!-- Sales -->
+<div class="card">
+    <div class="card-header">Sales Invoices ({{ invoices|length }})</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice No</th>
+                    <th>Customer</th>
+                    <th>Payment Mode</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in invoices %}
+                <tr>
+                    <td><a href="{{ url_for('billing.view', id=inv.id) }}">{{ inv.invoice_number }}</a></td>
+                    <td>{{ inv.party.name if inv.party else 'Cash' }}</td>
+                    <td>{{ inv.payment_mode or 'Credit' }}</td>
+                    <td class="number">₹{{ "%.2f"|format(inv.total_amount|float) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No sales</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Purchases -->
+<div class="card">
+    <div class="card-header">Purchases ({{ purchases|length }})</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Bill No</th>
+                    <th>Supplier</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in purchases %}
+                <tr>
+                    <td>{{ p.invoice_number }}</td>
+                    <td>{{ p.party.name if p.party else '-' }}</td>
+                    <td class="number">₹{{ "%.2f"|format(p.total_amount|float) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted">No purchases</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Expenses -->
+<div class="card">
+    <div class="card-header">Expenses ({{ expenses|length }})</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Paid To</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exp in expenses %}
+                <tr>
+                    <td>{{ exp.category.name if exp.category else '-' }}</td>
+                    <td>{{ exp.description }}</td>
+                    <td>{{ exp.vendor_name or '-' }}</td>
+                    <td class="number">₹{{ "%.2f"|format(exp.amount|float) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No expenses</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

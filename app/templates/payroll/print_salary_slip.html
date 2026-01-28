@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Salary Slip - {{ slip.employee.name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 12px; padding: 20px; }
+        .slip { max-width: 800px; margin: 0 auto; border: 2px solid #333; }
+        .header { background: #f5f5f5; padding: 15px; text-align: center; border-bottom: 2px solid #333; }
+        .header h1 { font-size: 18px; margin-bottom: 5px; }
+        .header p { color: #666; }
+        .period { background: #333; color: white; padding: 8px; text-align: center; font-weight: bold; }
+        .employee-info { padding: 15px; border-bottom: 1px solid #ddd; }
+        .employee-info table { width: 100%; }
+        .employee-info td { padding: 5px; }
+        .salary-details { display: flex; }
+        .earnings, .deductions { flex: 1; padding: 15px; }
+        .earnings { border-right: 1px solid #ddd; }
+        .section-title { font-weight: bold; background: #f5f5f5; padding: 8px; margin-bottom: 10px; }
+        .salary-details table { width: 100%; }
+        .salary-details td { padding: 5px; }
+        .salary-details .total { border-top: 2px solid #333; font-weight: bold; }
+        .net-salary { background: #333; color: white; padding: 15px; text-align: center; }
+        .net-salary .amount { font-size: 24px; font-weight: bold; }
+        .footer { padding: 15px; border-top: 1px solid #ddd; font-size: 10px; color: #666; }
+        .signature { margin-top: 40px; display: flex; justify-content: space-between; }
+        .signature div { text-align: center; }
+        .signature-line { border-top: 1px solid #333; width: 150px; margin-top: 40px; padding-top: 5px; }
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 30px; font-size: 14px; cursor: pointer;">🖨️ Print Salary Slip</button>
+    </div>
+    
+    <div class="slip">
+        <div class="header">
+            <h1>{{ company.name if company else 'Morning Basket' }}</h1>
+            <p>{{ company.address if company else '' }}</p>
+        </div>
+        
+        <div class="period">
+            SALARY SLIP - {{ ['', 'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'][slip.salary_month] }} {{ slip.salary_year }}
+        </div>
+        
+        <div class="employee-info">
+            <table>
+                <tr>
+                    <td><strong>Employee Name:</strong> {{ slip.employee.name }}</td>
+                    <td><strong>Department:</strong> {{ slip.employee.department or '-' }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Designation:</strong> {{ slip.employee.designation or '-' }}</td>
+                    <td><strong>Working Days:</strong> {{ slip.days_worked }} / {{ slip.total_working_days }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Bank A/C:</strong> {{ slip.employee.bank_account or '-' }}</td>
+                    <td><strong>Days Absent:</strong> {{ slip.days_absent or 0 }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="salary-details">
+            <div class="earnings">
+                <div class="section-title">EARNINGS</div>
+                <table>
+                    <tr><td>Basic Salary</td><td align="right">₹{{ "%.2f"|format(slip.basic_salary|float) }}</td></tr>
+                    {% if slip.hra %}<tr><td>HRA</td><td align="right">₹{{ "%.2f"|format(slip.hra|float) }}</td></tr>{% endif %}
+                    {% if slip.other_allowance %}<tr><td>Other Allowances</td><td align="right">₹{{ "%.2f"|format(slip.other_allowance|float) }}</td></tr>{% endif %}
+                    {% if slip.bonus %}<tr><td>Bonus</td><td align="right">₹{{ "%.2f"|format(slip.bonus|float) }}</td></tr>{% endif %}
+                    <tr class="total"><td>Gross Earnings</td><td align="right">₹{{ "%.2f"|format(slip.gross_salary|float) }}</td></tr>
+                </table>
+            </div>
+            <div class="deductions">
+                <div class="section-title">DEDUCTIONS</div>
+                <table>
+                    {% if slip.pf_deduction %}<tr><td>PF</td><td align="right">₹{{ "%.2f"|format(slip.pf_deduction|float) }}</td></tr>{% endif %}
+                    {% if slip.esi_deduction %}<tr><td>ESI</td><td align="right">₹{{ "%.2f"|format(slip.esi_deduction|float) }}</td></tr>{% endif %}
+                    {% if slip.tds %}<tr><td>TDS</td><td align="right">₹{{ "%.2f"|format(slip.tds|float) }}</td></tr>{% endif %}
+                    {% if slip.loan_deduction %}<tr><td>Loan Deduction</td><td align="right">₹{{ "%.2f"|format(slip.loan_deduction|float) }}</td></tr>{% endif %}
+                    <tr class="total"><td>Total Deductions</td><td align="right">₹{{ "%.2f"|format(slip.total_deductions|float) if slip.total_deductions else '0.00' }}</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="net-salary">
+            NET PAYABLE: <span class="amount">₹{{ "%.2f"|format(slip.net_salary|float) }}</span>
+        </div>
+        
+        <div class="footer">
+            <div class="signature">
+                <div>
+                    <div class="signature-line">Employee Signature</div>
+                </div>
+                <div>
+                    <div class="signature-line">Authorized Signatory</div>
+                </div>
+            </div>
+            <p style="margin-top: 20px; text-align: center;">This is a computer generated slip and does not require signature.</p>
+        </div>
+    </div>
+</body>
+</html>

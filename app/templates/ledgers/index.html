@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Parties{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">{% if party_type == 'supplier' %}Suppliers{% else %}Customers{% endif %}</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('ledgers.add') }}?type={{ party_type }}" class="btn btn-primary">+ Add {{ 'Supplier' if party_type == 'supplier' else 'Customer' }}</a>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <input type="hidden" name="type" value="{{ party_type }}">
+        <div class="filter-group">
+            <label>Search</label>
+            <input type="text" name="search" value="{{ request.args.get('search', '') }}" 
+                   placeholder="Name or Phone" class="form-control form-control-sm" style="width: 200px;">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>GSTIN</th>
+                    <th>City</th>
+                    <th class="text-right">Opening Bal</th>
+                    <th class="text-right">Current Bal</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if parties.items %}
+                    {% for p in parties.items %}
+                    <tr>
+                        <td><a href="{{ url_for('ledgers.view', id=p.id) }}">{{ p.name }}</a></td>
+                        <td>{{ p.phone or '-' }}</td>
+                        <td>{{ p.gstin or '-' }}</td>
+                        <td>{{ p.city or '-' }}</td>
+                        <td class="number">₹{{ "%.2f"|format(p.opening_balance|float) }}</td>
+                        <td class="number {% if p.current_balance > 0 %}text-danger{% elif p.current_balance < 0 %}text-success{% endif %}">
+                            ₹{{ "%.2f"|format(p.current_balance|float) }}
+                        </td>
+                        <td class="actions">
+                            <a href="{{ url_for('ledgers.view', id=p.id) }}" class="btn btn-sm btn-secondary">Ledger</a>
+                            <a href="{{ url_for('ledgers.edit', id=p.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No {{ 'suppliers' if party_type == 'supplier' else 'customers' }} found</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if parties.pages > 1 %}
+<div class="pagination">
+    {% if parties.has_prev %}
+        <a href="{{ url_for('ledgers.index', page=parties.prev_num, type=party_type) }}">← Prev</a>
+    {% endif %}
+    {% for page in parties.iter_pages() %}
+        {% if page %}
+            <a href="{{ url_for('ledgers.index', page=page, type=party_type) }}" 
+               class="{% if page == parties.page %}active{% endif %}">{{ page }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if parties.has_next %}
+        <a href="{{ url_for('ledgers.index', page=parties.next_num, type=party_type) }}">Next →</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

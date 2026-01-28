@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Adjust Stock - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Adjust Stock: {{ product.name }}</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Current Stock</div>
+        <div class="stat-value">{{ product.current_stock }} {{ product.unit }}</div>
+    </div>
+</div>
+
+<form method="post" action="{{ url_for('inventory.adjust_stock', id=product.id) }}">
+    <div class="card">
+        <div class="card-header">Stock Adjustment</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Adjustment Type *</label>
+                    <select name="adjustment_type" class="form-control" required>
+                        <option value="ADD">Add Stock (Purchase/Return)</option>
+                        <option value="REMOVE">Remove Stock (Damage/Loss)</option>
+                        <option value="SET">Set Exact Quantity</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity *</label>
+                    <input type="number" name="quantity" step="0.01" class="form-control" required min="0">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Reason/Notes *</label>
+                <input type="text" name="notes" class="form-control" required placeholder="e.g. Damaged goods, Physical count correction">
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-lg">Adjust Stock</button>
+        <a href="{{ url_for('inventory.view', id=product.id) }}" class="btn btn-secondary btn-lg">Cancel</a>
+    </div>
+</form>
+{% endblock %}

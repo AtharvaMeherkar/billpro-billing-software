@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Salary Slip - {{ slip.employee.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Salary Slip</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('payroll.print_salary_slip', id=slip.id) }}" class="btn btn-primary" target="_blank">🖨️ Print</a>
+        {% if not slip.is_paid %}
+        <form method="post" action="{{ url_for('payroll.pay_salary', id=slip.id) }}" style="display: inline;">
+            <button type="submit" class="btn btn-success">💵 Mark as Paid</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        {{ ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][slip.salary_month] }} {{ slip.salary_year }}
+        {% if slip.is_paid %}
+        <span class="badge badge-success" style="float: right;">PAID</span>
+        {% else %}
+        <span class="badge badge-warning" style="float: right;">PENDING</span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="form-row">
+            <div style="flex: 1;">
+                <h3>{{ slip.employee.name }}</h3>
+                <p class="text-muted">
+                    {{ slip.employee.designation or '' }}{% if slip.employee.department %} | {{ slip.employee.department }}{% endif %}<br>
+                    {{ slip.employee.phone or '' }}
+                </p>
+            </div>
+            <div style="flex: 1; text-align: right;">
+                <table style="margin-left: auto;">
+                    <tr><td class="text-muted">Working Days:</td><td><strong>{{ slip.total_working_days }}</strong></td></tr>
+                    <tr><td class="text-muted">Days Worked:</td><td><strong>{{ slip.days_worked }}</strong></td></tr>
+                    <tr><td class="text-muted">Days Absent:</td><td><strong>{{ slip.days_absent or 0 }}</strong></td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="card" style="flex: 1;">
+        <div class="card-header">Earnings</div>
+        <div class="card-body">
+            <table style="width: 100%;">
+                <tr><td>Basic Salary</td><td class="text-right">₹{{ "%.2f"|format(slip.basic_salary|float) }}</td></tr>
+                {% if slip.hra %}
+                <tr><td>HRA</td><td class="text-right">₹{{ "%.2f"|format(slip.hra|float) }}</td></tr>
+                {% endif %}
+                {% if slip.other_allowance %}
+                <tr><td>Other Allowances</td><td class="text-right">₹{{ "%.2f"|format(slip.other_allowance|float) }}</td></tr>
+                {% endif %}
+                {% if slip.bonus %}
+                <tr><td>Bonus</td><td class="text-right">₹{{ "%.2f"|format(slip.bonus|float) }}</td></tr>
+                {% endif %}
+                <tr style="border-top: 2px solid #333; font-weight: bold;">
+                    <td>Gross Salary</td>
+                    <td class="text-right">₹{{ "%.2f"|format(slip.gross_salary|float) }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card" style="flex: 1;">
+        <div class="card-header">Deductions</div>
+        <div class="card-body">
+            <table style="width: 100%;">
+                {% if slip.pf_deduction %}
+                <tr><td>PF</td><td class="text-right">₹{{ "%.2f"|format(slip.pf_deduction|float) }}</td></tr>
+                {% endif %}
+                {% if slip.esi_deduction %}
+                <tr><td>ESI</td><td class="text-right">₹{{ "%.2f"|format(slip.esi_deduction|float) }}</td></tr>
+                {% endif %}
+                {% if slip.tds %}
+                <tr><td>TDS</td><td class="text-right">₹{{ "%.2f"|format(slip.tds|float) }}</td></tr>
+                {% endif %}
+                {% if slip.loan_deduction %}
+                <tr><td>Loan Deduction</td><td class="text-right">₹{{ "%.2f"|format(slip.loan_deduction|float) }}</td></tr>
+                {% endif %}
+                {% if slip.other_deduction %}
+                <tr><td>Other Deductions</td><td class="text-right">₹{{ "%.2f"|format(slip.other_deduction|float) }}</td></tr>
+                {% endif %}
+                <tr style="border-top: 2px solid #333; font-weight: bold;">
+                    <td>Total Deductions</td>
+                    <td class="text-right">₹{{ "%.2f"|format(slip.total_deductions|float) if slip.total_deductions else '0.00' }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="max-width: 400px; margin-left: auto;">
+    <div class="card-body" style="text-align: center; padding: 20px;">
+        <div class="text-muted" style="font-size: 14px;">Net Payable</div>
+        <div style="font-size: 32px; font-weight: bold; color: #2196F3;">
+            ₹{{ "%.2f"|format(slip.net_salary|float) }}
+        </div>
+        {% if slip.is_paid %}
+        <div style="margin-top: 10px; color: #4caf50;">
+            ✓ Paid on {{ slip.paid_date.strftime('%d-%m-%Y') if slip.paid_date else '' }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}E-Invoice - {{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">E-Invoice JSON</h1>
+    <div class="page-actions">
+        {% if invoice.einvoice_generated %}
+        <a href="{{ url_for('einvoice.download', id=invoice.id) }}" class="btn btn-primary">📥 Download JSON</a>
+        {% endif %}
+        <a href="{{ url_for('einvoice.index') }}" class="btn btn-secondary">← Back</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Invoice Number</div>
+        <div class="stat-value">{{ invoice.invoice_number }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Customer</div>
+        <div class="stat-value">{{ invoice.party.name }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">GSTIN</div>
+        <div class="stat-value">{{ invoice.party.gstin or 'URP' }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Amount</div>
+        <div class="stat-value">₹{{ "%.2f"|format(invoice.total_amount|float) }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        E-Invoice JSON (GST Format)
+        <button onclick="copyJSON()" class="btn btn-sm btn-secondary" style="float: right;">📋 Copy</button>
+    </div>
+    <div class="card-body">
+        <pre id="jsonContent" style="background: #1a1a2e; color: #0f0; padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 12px; max-height: 600px;">{{ einvoice_data }}</pre>
+    </div>
+</div>
+
+{% if not invoice.einvoice_generated %}
+<div class="card">
+    <div class="card-body" style="text-align: center;">
+        <p>This is a preview. Click below to generate and save the e-invoice JSON.</p>
+        <form method="post" action="{{ url_for('einvoice.generate', id=invoice.id) }}">
+            <button type="submit" class="btn btn-primary btn-lg">Generate & Save E-Invoice</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function copyJSON() {
+    const text = document.getElementById('jsonContent').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('JSON copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

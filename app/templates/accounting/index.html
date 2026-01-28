@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Accounting{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Accounting Overview</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">This Month Sales</div>
+        <div class="stat-value success">₹{{ "%.2f"|format(month_sales|float) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">This Month Purchases</div>
+        <div class="stat-value">₹{{ "%.2f"|format(month_purchases|float) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">This Month Expenses</div>
+        <div class="stat-value warning">₹{{ "%.2f"|format(month_expenses|float) }}</div>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">FY Sales</div>
+        <div class="stat-value">₹{{ "%.2f"|format(fy_sales|float) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">FY Purchases</div>
+        <div class="stat-value">₹{{ "%.2f"|format(fy_purchases|float) }}</div>
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="card">
+        <div class="card-header">Sales & Purchase</div>
+        <div class="card-body">
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <a href="{{ url_for('accounting.sales_register') }}">📗 Sales Register</a>
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <a href="{{ url_for('accounting.purchase_register') }}">📕 Purchase Register</a>
+                </li>
+                <li style="padding: 8px 0;">
+                    <a href="{{ url_for('accounting.expense_register') }}">💸 Expense Register</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Cash & Bank</div>
+        <div class="card-body">
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <a href="{{ url_for('accounting.cash_book') }}">💵 Cash Book</a>
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <a href="{{ url_for('accounting.bank_book') }}">🏦 Bank Book</a>
+                </li>
+                <li style="padding: 8px 0;">
+                    <a href="{{ url_for('accounting.day_book') }}">📔 Day Book</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Reports</div>
+        <div class="card-body">
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <a href="{{ url_for('accounting.monthly_summary') }}">📊 Monthly Summary</a>
+                </li>
+                <li style="padding: 8px 0;">
+                    <a href="{{ url_for('reports.gst_report') }}">🧾 GST Summary</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        Quick Actions
+    </div>
+    <div class="card-body">
+        <a href="{{ url_for('accounting.add_expense') }}" class="btn btn-primary">+ Add Expense</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ party.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Edit {{ party.party_type|title }}: {{ party.name }}</h1>
+</div>
+
+<form method="post" action="{{ url_for('ledgers.edit', id=party.id) }}">
+    <div class="card">
+        <div class="card-header">Party Details</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label class="form-label">Name *</label>
+                    <input type="text" name="name" class="form-control" required value="{{ party.name }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Code</label>
+                    <input type="text" name="code" class="form-control" value="{{ party.code or '' }}">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="tel" name="phone" class="form-control" value="{{ party.phone or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" value="{{ party.email or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">GSTIN</label>
+                    <input type="text" name="gstin" class="form-control" value="{{ party.gstin or '' }}" maxlength="15">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Contact Person</label>
+                    <input type="text" name="contact_person" class="form-control" value="{{ party.contact_person or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PAN</label>
+                    <input type="text" name="pan" class="form-control" value="{{ party.pan or '' }}" maxlength="10">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Address</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label class="form-label">Address Line 1</label>
+                    <input type="text" name="address_line1" class="form-control" value="{{ party.address_line1 or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" name="address_line2" class="form-control" value="{{ party.address_line2 or '' }}">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" name="city" class="form-control" value="{{ party.city or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State</label>
+                    <select name="state_code" class="form-control">
+                        <option value="">Select State</option>
+                        {% for code, name in state_codes.items() %}
+                        <option value="{{ code }}" {% if party.state_code == code %}selected{% endif %}>{{ code }} - {{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PIN Code</label>
+                    <input type="text" name="pincode" class="form-control" value="{{ party.pincode or '' }}" maxlength="6">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Credit Settings</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Credit Limit (₹)</label>
+                    <input type="number" name="credit_limit" step="0.01" value="{{ party.credit_limit or 0 }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Credit Days</label>
+                    <input type="number" name="credit_days" value="{{ party.credit_days or 30 }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <div style="padding-top: 8px;">
+                        <label>
+                            <input type="checkbox" name="is_active" {% if party.is_active %}checked{% endif %}> Active
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+        <a href="{{ url_for('ledgers.view', id=party.id) }}" class="btn btn-secondary btn-lg">Cancel</a>
+    </div>
+</form>
+{% endblock %}

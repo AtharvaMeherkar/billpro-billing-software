@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}{% if party %}Edit Party{% else %}Add Party{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">{% if party %}Edit {{ party.name }}{% else %}Add New {{ 'Supplier' if party_type == 'supplier' else 'Customer' }}{% endif %}</h1>
+</div>
+
+<form method="post" action="{{ url_for('ledgers.edit', id=party.id) if party else url_for('ledgers.add') }}">
+    <input type="hidden" name="party_type" value="{{ party.party_type if party else party_type or 'customer' }}">
+    
+    <div class="card">
+        <div class="card-header">Basic Details</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Name *</label>
+                    <input type="text" name="name" value="{{ party.name if party else '' }}" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="phone" value="{{ party.phone if party else '' }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" value="{{ party.email if party else '' }}" class="form-control">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">GST Details</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">GSTIN</label>
+                    <input type="text" name="gstin" value="{{ party.gstin if party else '' }}" 
+                           class="form-control" maxlength="15" placeholder="22AAAAA0000A1Z5">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PAN</label>
+                    <input type="text" name="pan" value="{{ party.pan if party else '' }}" 
+                           class="form-control" maxlength="10">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Address</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Address Line 1</label>
+                    <input type="text" name="address_line1" value="{{ party.address_line1 if party else '' }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" name="address_line2" value="{{ party.address_line2 if party else '' }}" class="form-control">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" name="city" value="{{ party.city if party else '' }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State</label>
+                    <select name="state" class="form-control">
+                        <option value="">Select State</option>
+                        <option value="Andhra Pradesh" {% if party and party.state == 'Andhra Pradesh' %}selected{% endif %}>Andhra Pradesh</option>
+                        <option value="Delhi" {% if party and party.state == 'Delhi' %}selected{% endif %}>Delhi</option>
+                        <option value="Gujarat" {% if party and party.state == 'Gujarat' %}selected{% endif %}>Gujarat</option>
+                        <option value="Karnataka" {% if party and party.state == 'Karnataka' %}selected{% endif %}>Karnataka</option>
+                        <option value="Maharashtra" {% if party and party.state == 'Maharashtra' %}selected{% endif %}>Maharashtra</option>
+                        <option value="Rajasthan" {% if party and party.state == 'Rajasthan' %}selected{% endif %}>Rajasthan</option>
+                        <option value="Tamil Nadu" {% if party and party.state == 'Tamil Nadu' %}selected{% endif %}>Tamil Nadu</option>
+                        <option value="Uttar Pradesh" {% if party and party.state == 'Uttar Pradesh' %}selected{% endif %}>Uttar Pradesh</option>
+                        <option value="West Bengal" {% if party and party.state == 'West Bengal' %}selected{% endif %}>West Bengal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pincode</label>
+                    <input type="text" name="pincode" value="{{ party.pincode if party else '' }}" class="form-control" maxlength="6">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Balance</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Opening Balance (₹)</label>
+                    <input type="number" name="opening_balance" value="{{ party.opening_balance|float if party else '0' }}"
+                           step="0.01" class="form-control">
+                    <small class="text-muted">Positive = Party owes you, Negative = You owe party</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-lg">{% if party %}Update{% else %}Add{% endif %}</button>
+        <a href="{{ url_for('ledgers.index', type=party.party_type if party else party_type) }}" class="btn btn-secondary btn-lg">Cancel</a>
+    </div>
+</form>
+{% endblock %}

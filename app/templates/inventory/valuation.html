@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Valuation{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Stock Valuation</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Products</div>
+        <div class="stat-value">{{ items|length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Inventory Value</div>
+        <div class="stat-value success">₹{{ "%.2f"|format(total_value) }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Code</th>
+                    <th class="text-right">Stock</th>
+                    <th class="text-right">Cost Price</th>
+                    <th class="text-right">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><a href="{{ url_for('inventory.view', id=item.product.id) }}">{{ item.product.name }}</a></td>
+                    <td>{{ item.product.code or '-' }}</td>
+                    <td class="number">{{ item.product.current_stock }} {{ item.product.unit }}</td>
+                    <td class="number">₹{{ "%.2f"|format(item.product.cost_price|float) }}</td>
+                    <td class="number"><strong>₹{{ "%.2f"|format(item.value|float) }}</strong></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No products</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td colspan="4">Total Inventory Value</td>
+                    <td class="number">₹{{ "%.2f"|format(total_value) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{
+    "paper_width": 80,
+    "fields": {
+        "invoice_number": { "show": true, "label": "Invoice No" },
+        "invoice_date": { "show": true, "label": "Date" },
+        "customer_name": { "show": true, "label": "Customer" },
+        "customer_gstin": { "show": true, "label": "GSTIN" },
+        "customer_address": { "show": false, "label": "Address" },
+        "hsn_code": { "show": true },
+        "gst_breakup": { "show": true },
+        "amount_words": { "show": true }
+    },
+    "columns": {
+        "item_name": { "width": 20, "align": "left" },
+        "hsn": { "width": 8, "align": "center" },
+        "qty": { "width": 8, "align": "right" },
+        "rate": { "width": 10, "align": "right" },
+        "amount": { "width": 10, "align": "right" }
+    },
+    "formatting": {
+        "bold_total": true,
+        "separator_char": "-",
+        "currency_symbol": "Rs.",
+        "decimal_places": 2
+    }
+}

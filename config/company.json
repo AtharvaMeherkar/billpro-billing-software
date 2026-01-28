@@ -1,0 +1,19 @@
+{
+    "name": "Morning Basket",
+    "gstin": "",
+    "pan": "",
+    "address": {
+        "line1": "Sai Siddhi Niwas",
+        "line2": "Lane no 04, Bibewadi",
+        "city": "Pune",
+        "state": "Maharashtra",
+        "state_code": "27",
+        "pincode": "411037"
+    },
+    "contact": {
+        "phone": "8698292415",
+        "email": "morningbasket07@gmail.com"
+    },
+    "invoice_prefix": "MB/25-26/",
+    "invoice_terms": "All items are freshly packed and delivered daily.\r\nSince fruits are perishable in nature, returns are not accepted after delivery.\r\nIn case of any quality concerns, customers are requested to inform us on the same day.\r\nPayments are collected on a weekly or monthly basis, as per the selected plan."
+}

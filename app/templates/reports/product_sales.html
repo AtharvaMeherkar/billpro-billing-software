@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Product-wise Sales{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Product-wise Sales</h1>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>From</label>
+            <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>To</label>
+            <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product Name</th>
+                    <th>HSN Code</th>
+                    <th class="text-right">Qty Sold</th>
+                    <th class="text-right">Total Sales</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set total_amount = namespace(value=0) %}
+                {% for r in results %}
+                {% set total_amount.value = total_amount.value + (r.total_amount|float) %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ r.name }}</td>
+                    <td>{{ r.hsn_code or '-' }}</td>
+                    <td class="number">{{ "%.2f"|format(r.total_qty|float) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(r.total_amount|float) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No sales in this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td colspan="4">Total</td>
+                    <td class="number">₹{{ "%.2f"|format(total_amount.value) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('billing.new') }}" class="btn btn-primary">+ New Invoice</a>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Today's Sales</div>
+        <div class="stat-value success">₹{{ "%.2f"|format(stats.total_sales_today|default(0)) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">This Month's Sales</div>
+        <div class="stat-value">₹{{ "%.2f"|format(stats.total_sales_month|default(0)) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Customers</div>
+        <div class="stat-value">{{ stats.total_customers|default(0) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Products</div>
+        <div class="stat-value">{{ stats.total_products|default(0) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Low Stock Items</div>
+        <div class="stat-value {% if stats.low_stock_count > 0 %}warning{% endif %}">
+            {{ stats.low_stock_count|default(0) }}
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Pending Receivables</div>
+        <div class="stat-value {% if stats.pending_receivables > 0 %}danger{% endif %}">
+            ₹{{ "%.2f"|format(stats.pending_receivables|default(0)) }}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Invoices -->
+<div class="card">
+    <div class="card-header">
+        Recent Invoices
+        <a href="{{ url_for('billing.index') }}" style="float: right; font-weight: normal; font-size: 12px;">View All →</a>
+    </div>
+    <div class="card-body">
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice No</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if recent_invoices %}
+                    {% for inv in recent_invoices %}
+                    <tr>
+                        <td><a href="{{ url_for('billing.view', id=inv.id) }}">{{ inv.invoice_number }}</a></td>
+                        <td>{{ inv.invoice_date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ inv.party.name }}</td>
+                        <td class="number">₹{{ "%.2f"|format(inv.total_amount|float) }}</td>
+                        <td>
+                            {% if inv.payment_status == 'PAID' %}
+                                <span class="badge badge-success">Paid</span>
+                            {% elif inv.payment_status == 'PARTIAL' %}
+                                <span class="badge badge-warning">Partial</span>
+                            {% else %}
+                                <span class="badge badge-danger">Unpaid</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No invoices yet. <a href="{{ url_for('billing.new') }}">Create your first invoice</a></td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="stats-grid">
+    <div class="card">
+        <div class="card-body text-center">
+            <a href="{{ url_for('billing.new') }}" class="btn btn-primary btn-lg">+ New Invoice</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body text-center">
+            <a href="{{ url_for('inventory.add') }}" class="btn btn-secondary btn-lg">+ Add Product</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body text-center">
+            <a href="{{ url_for('ledgers.add') }}" class="btn btn-secondary btn-lg">+ Add Customer</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body text-center">
+            <a href="{{ url_for('accounting.add_expense') }}" class="btn btn-secondary btn-lg">+ Add Expense</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

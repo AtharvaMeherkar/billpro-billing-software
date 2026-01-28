@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Settings</h1>
+</div>
+
+<form method="post" action="{{ url_for('settings') }}">
+    <div class="card">
+        <div class="card-header">Company Information</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Company Name *</label>
+                    <input type="text" name="name" value="{{ company.name or '' }}" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">GSTIN</label>
+                    <input type="text" name="gstin" value="{{ company.gstin or '' }}" class="form-control" maxlength="15">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PAN</label>
+                    <input type="text" name="pan" value="{{ company.pan or '' }}" class="form-control" maxlength="10">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Address</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Address Line 1</label>
+                    <input type="text" name="address_line1" value="{{ company.address.line1 if company.address else '' }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" name="address_line2" value="{{ company.address.line2 if company.address else '' }}" class="form-control">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" name="city" value="{{ company.address.city if company.address else '' }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State</label>
+                    <input type="text" name="state" value="{{ company.address.state if company.address else '' }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pincode</label>
+                    <input type="text" name="pincode" value="{{ company.address.pincode if company.address else '' }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State Code</label>
+                    <input type="text" name="state_code" value="{{ company.address.state_code if company.address else '' }}" class="form-control" maxlength="2">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Contact</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="phone" value="{{ company.contact.phone if company.contact else '' }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" value="{{ company.contact.email if company.contact else '' }}" class="form-control">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Invoice Settings</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Invoice Prefix</label>
+                    <input type="text" name="invoice_prefix" value="{{ company.invoice_prefix or 'INV' }}" class="form-control" placeholder="INV">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Invoice Terms</label>
+                    <textarea name="invoice_terms" class="form-control" rows="3">{{ company.invoice_terms or 'Goods once sold will not be taken back.' }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-lg">Save Settings</button>
+    </div>
+</form>
+
+<div class="card mt-md">
+    <div class="card-header">Other Settings</div>
+    <div class="card-body">
+        <ul style="list-style: none; padding: 0;">
+            <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                <a href="{{ url_for('printing.settings') }}">🖨️ Printer Settings</a>
+            </li>
+            <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                <a href="{{ url_for('accounting.expense_categories') }}">📁 Expense Categories</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

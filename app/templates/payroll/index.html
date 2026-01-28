@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Employees{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Employee Payroll</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('payroll.add_employee') }}" class="btn btn-primary">+ Add Employee</a>
+        <a href="{{ url_for('payroll.process_payroll') }}" class="btn btn-secondary">Process Payroll</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">{{ current_month }} Processed</div>
+        <div class="stat-value">{{ total_processed }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">{{ current_month }} Paid</div>
+        <div class="stat-value success">{{ total_paid }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Salary</div>
+        <div class="stat-value">₹{{ "%.2f"|format(total_salary) }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Active Employees</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Designation</th>
+                    <th>Department</th>
+                    <th class="text-right">Basic</th>
+                    <th class="text-right">Gross</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if employees %}
+                    {% for emp in employees %}
+                    <tr>
+                        <td>{{ emp.employee_code or '-' }}</td>
+                        <td><a href="{{ url_for('payroll.view_employee', id=emp.id) }}">{{ emp.name }}</a></td>
+                        <td>{{ emp.designation or '-' }}</td>
+                        <td>{{ emp.department or '-' }}</td>
+                        <td class="number">₹{{ "%.2f"|format(emp.basic_salary|float) }}</td>
+                        <td class="number">₹{{ "%.2f"|format(emp.gross_salary|float) }}</td>
+                        <td class="actions">
+                            <a href="{{ url_for('payroll.view_employee', id=emp.id) }}" class="btn btn-sm btn-secondary">View</a>
+                            <a href="{{ url_for('payroll.edit_employee', id=emp.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No employees yet</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

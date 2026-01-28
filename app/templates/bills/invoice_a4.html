@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice {{ invoice.invoice_number }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .company-info h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .company-info p {
+            margin: 2px 0;
+            color: #555;
+        }
+        
+        .invoice-title {
+            text-align: right;
+        }
+        
+        .invoice-title h2 {
+            font-size: 24px;
+            color: #333;
+        }
+        
+        .invoice-title .invoice-number {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        /* Info Section */
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            width: 48%;
+        }
+        
+        .info-box h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p {
+            margin: 3px 0;
+        }
+        
+        /* Items Table */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .items-table th {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        
+        .items-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        
+        .items-table .number {
+            text-align: right;
+        }
+        
+        /* Totals */
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .totals-table {
+            width: 300px;
+        }
+        
+        .totals-table td {
+            padding: 5px 10px;
+        }
+        
+        .totals-table .label {
+            text-align: right;
+        }
+        
+        .totals-table .value {
+            text-align: right;
+            font-family: monospace;
+        }
+        
+        .totals-table .grand-total {
+            font-size: 16px;
+            font-weight: bold;
+            background: #f5f5f5;
+            border-top: 2px solid #333;
+        }
+        
+        /* Amount in Words */
+        .amount-words {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            font-style: italic;
+        }
+        
+        /* Footer */
+        .invoice-footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .terms {
+            width: 60%;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .signature {
+            width: 35%;
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 50px;
+            padding-top: 5px;
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                padding: 0;
+            }
+            .invoice-container {
+                border: none;
+            }
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+        }
+        
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        @media print {
+            .print-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">🖨️ Print Invoice</button>
+    
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-info">
+                <h1>{{ company.name or 'Company Name' }}</h1>
+                <p>{{ company.address.line1 if company.address else '' }}</p>
+                <p>{{ company.address.city if company.address else '' }}, {{ company.address.state if company.address else '' }} - {{ company.address.pincode if company.address else '' }}</p>
+                <p>Phone: {{ company.contact.phone if company.contact else '' }}</p>
+                <p><strong>GSTIN: {{ company.gstin or 'N/A' }}</strong></p>
+            </div>
+            <div class="invoice-title">
+                <h2>{% if invoice.is_gst_invoice %}TAX INVOICE{% else %}INVOICE{% endif %}</h2>
+                <div class="invoice-number">
+                    <strong>{{ invoice.invoice_number }}</strong><br>
+                    Date: {{ invoice.invoice_date.strftime('%d-%m-%Y') }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customer & Invoice Info -->
+        <div class="info-section">
+            <div class="info-box">
+                <h3>Bill To</h3>
+                <p><strong>{{ invoice.party.name }}</strong></p>
+                {% if invoice.party.gstin %}
+                <p>GSTIN: {{ invoice.party.gstin }}</p>
+                {% endif %}
+                <p>{{ invoice.party.address_line1 or '' }}</p>
+                <p>{{ invoice.party.city or '' }}{% if invoice.party.state %}, {{ invoice.party.state }}{% endif %} {% if invoice.party.pincode %}- {{ invoice.party.pincode }}{% endif %}</p>
+                {% if invoice.party.phone %}
+                <p>Phone: {{ invoice.party.phone }}</p>
+                {% endif %}
+            </div>
+            <div class="info-box">
+                <h3>Invoice Details</h3>
+                <p>Invoice Type: {{ 'GST' if invoice.is_gst_invoice else 'Regular' }}</p>
+                <p>Payment Mode: {{ invoice.payment_mode }}</p>
+                <p>Status: {{ invoice.payment_status }}</p>
+            </div>
+        </div>
+        
+        <!-- Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 30%;">Description</th>
+                    <th style="width: 10%;">HSN</th>
+                    <th style="width: 8%;" class="number">Qty</th>
+                    <th style="width: 10%;" class="number">Rate</th>
+                    <th style="width: 12%;" class="number">Taxable</th>
+                    {% if invoice.is_gst_invoice %}
+                        {% if invoice.is_igst %}
+                            <th style="width: 12%;" class="number">IGST</th>
+                        {% else %}
+                            <th style="width: 10%;" class="number">CGST</th>
+                            <th style="width: 10%;" class="number">SGST</th>
+                        {% endif %}
+                    {% endif %}
+                    <th style="width: 12%;" class="number">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ item.description or item.product.name }}</td>
+                    <td>{{ item.hsn_code or '-' }}</td>
+                    <td class="number">{{ item.quantity }} {{ item.unit }}</td>
+                    <td class="number">{{ "%.2f"|format(item.rate|float) }}</td>
+                    <td class="number">{{ "%.2f"|format(item.taxable_amount|float) }}</td>
+                    {% if invoice.is_gst_invoice %}
+                        {% if invoice.is_igst %}
+                            <td class="number">{{ "%.2f"|format(item.igst_amount|float) }}<br><small>({{ item.igst_percent }}%)</small></td>
+                        {% else %}
+                            <td class="number">{{ "%.2f"|format(item.cgst_amount|float) }}<br><small>({{ item.cgst_percent }}%)</small></td>
+                            <td class="number">{{ "%.2f"|format(item.sgst_amount|float) }}<br><small>({{ item.sgst_percent }}%)</small></td>
+                        {% endif %}
+                    {% endif %}
+                    <td class="number"><strong>{{ "%.2f"|format(item.total_amount|float) }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Totals -->
+        <div class="totals-section">
+            <table class="totals-table">
+                <tr>
+                    <td class="label">Subtotal:</td>
+                    <td class="value">₹{{ "%.2f"|format(invoice.subtotal|float) }}</td>
+                </tr>
+                {% if invoice.is_gst_invoice %}
+                    {% if invoice.is_igst %}
+                        <tr>
+                            <td class="label">IGST:</td>
+                            <td class="value">₹{{ "%.2f"|format(invoice.igst_amount|float) }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td class="label">CGST:</td>
+                            <td class="value">₹{{ "%.2f"|format(invoice.cgst_amount|float) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">SGST:</td>
+                            <td class="value">₹{{ "%.2f"|format(invoice.sgst_amount|float) }}</td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
+                {% if invoice.round_off %}
+                <tr>
+                    <td class="label">Round Off:</td>
+                    <td class="value">₹{{ "%.2f"|format(invoice.round_off|float) }}</td>
+                </tr>
+                {% endif %}
+                <tr class="grand-total">
+                    <td class="label">Grand Total:</td>
+                    <td class="value">₹{{ "%.2f"|format(invoice.total_amount|float) }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Amount in Words -->
+        <div class="amount-words">
+            <strong>Amount in Words:</strong> {{ amount_words }}
+        </div>
+        
+        <!-- Footer -->
+        <div class="invoice-footer">
+            <div class="terms">
+                <strong>Terms & Conditions:</strong><br>
+                {{ company.invoice_terms|default("1. Goods once sold will not be taken back.\n2. Subject to local jurisdiction.", true)|replace('\n', '<br>')|safe }}
+            </div>
+            <div class="signature">
+                <div class="signature-line">
+                    Authorized Signatory
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

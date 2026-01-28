@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}{{ party.name }} - Ledger{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">{{ party.name }}</h1>
+    <div class="page-actions">
+        {% if party.party_type == 'customer' %}
+        <button class="btn btn-primary" onclick="document.getElementById('receivePaymentModal').style.display='block'">+ Receive Payment</button>
+        {% else %}
+        <button class="btn btn-primary" onclick="document.getElementById('makePaymentModal').style.display='block'">+ Make Payment</button>
+        {% endif %}
+        <a href="{{ url_for('ledgers.edit', id=party.id) }}" class="btn btn-secondary">Edit Details</a>
+        <a href="{{ url_for('ledgers.export_ledger', id=party.id) }}" class="btn btn-secondary">Export CSV</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Type</div>
+        <div class="stat-value">{{ party.party_type|title }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Opening Balance</div>
+        <div class="stat-value">₹{{ "%.2f"|format(party.opening_balance|float) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Current Balance</div>
+        <div class="stat-value {% if party.current_balance > 0 %}text-danger{% elif party.current_balance < 0 %}text-success{% endif %}">
+            ₹{{ "%.2f"|format(party.current_balance|float) }}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Party Details</div>
+    <div class="card-body">
+        <div class="form-row">
+            <div>
+                <strong>Phone:</strong> {{ party.phone or '-' }}<br>
+                <strong>Email:</strong> {{ party.email or '-' }}<br>
+                <strong>GSTIN:</strong> {{ party.gstin or '-' }}
+            </div>
+            <div>
+                <strong>Address:</strong><br>
+                {{ party.address_line1 or '' }}<br>
+                {{ party.address_line2 or '' }}<br>
+                {{ party.city or '' }}{% if party.state %}, {{ party.state }}{% endif %} {{ party.pincode or '' }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Ledger Transactions</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Reference</th>
+                    <th>Description</th>
+                    <th class="text-right">Debit</th>
+                    <th class="text-right">Credit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for txn in transactions %}
+                <tr>
+                    <td>{{ txn.transaction_date.strftime('%d-%m-%Y') }}</td>
+                    <td>
+                        <span class="badge {% if txn.debit > 0 %}badge-danger{% else %}badge-success{% endif %}">
+                            {{ txn.transaction_type }}
+                        </span>
+                    </td>
+                    <td>{{ txn.reference_number or '-' }}</td>
+                    <td>{{ txn.narration or '-' }}</td>
+                    <td class="number">
+                        {% if txn.debit %}₹{{ "%.2f"|format(txn.debit|float) }}{% endif %}
+                    </td>
+                    <td class="number">
+                        {% if txn.credit %}₹{{ "%.2f"|format(txn.credit|float) }}{% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">No transactions</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td colspan="4">Balance</td>
+                    <td colspan="2" class="text-right {% if party.current_balance > 0 %}text-danger{% elif party.current_balance < 0 %}text-success{% endif %}">
+                        ₹{{ "%.2f"|format(party.current_balance|float) }}
+                        {% if party.current_balance > 0 %}
+                            ({{ 'Receivable' if party.party_type == 'customer' else 'Payable' }})
+                        {% elif party.current_balance < 0 %}
+                            (Advance)
+                        {% endif %}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- Receive Payment Modal (for customers) -->
+<div id="receivePaymentModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="background: white; max-width: 500px; margin: 100px auto; padding: 20px; border-radius: 8px;">
+        <h3>Receive Payment from {{ party.name }}</h3>
+        <form method="post" action="{{ url_for('ledgers.receive_payment', id=party.id) }}">
+            <div class="form-group">
+                <label class="form-label">Date *</label>
+                <input type="date" name="payment_date" class="form-control" required value="{{ today }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Amount (₹) *</label>
+                <input type="number" name="amount" step="0.01" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Payment Mode</label>
+                <select name="payment_mode" class="form-control">
+                    <option value="CASH">Cash</option>
+                    <option value="BANK">Bank Transfer</option>
+                    <option value="UPI">UPI</option>
+                    <option value="CHEQUE">Cheque</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reference/Cheque No</label>
+                <input type="text" name="reference" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <input type="text" name="notes" class="form-control">
+            </div>
+            <div style="margin-top: 20px;">
+                <button type="submit" class="btn btn-primary">Receive Payment</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('receivePaymentModal').style.display='none'">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Make Payment Modal (for suppliers) -->
+<div id="makePaymentModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="background: white; max-width: 500px; margin: 100px auto; padding: 20px; border-radius: 8px;">
+        <h3>Make Payment to {{ party.name }}</h3>
+        <form method="post" action="{{ url_for('ledgers.make_payment', id=party.id) }}">
+            <div class="form-group">
+                <label class="form-label">Date *</label>
+                <input type="date" name="payment_date" class="form-control" required value="{{ today }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Amount (₹) *</label>
+                <input type="number" name="amount" step="0.01" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Payment Mode</label>
+                <select name="payment_mode" class="form-control">
+                    <option value="CASH">Cash</option>
+                    <option value="BANK">Bank Transfer</option>
+                    <option value="UPI">UPI</option>
+                    <option value="CHEQUE">Cheque</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reference/Cheque No</label>
+                <input type="text" name="reference" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <input type="text" name="notes" class="form-control">
+            </div>
+            <div style="margin-top: 20px;">
+                <button type="submit" class="btn btn-primary">Make Payment</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('makePaymentModal').style.display='none'">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

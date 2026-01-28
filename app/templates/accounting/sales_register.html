@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Register{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Sales Register</h1>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>From</label>
+            <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>To</label>
+            <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Invoices</div>
+        <div class="stat-value">{{ invoices|length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Sales</div>
+        <div class="stat-value success">₹{{ "%.2f"|format(totals.total) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total GST</div>
+        <div class="stat-value">₹{{ "%.2f"|format(totals.cgst + totals.sgst + totals.igst) }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Invoice No</th>
+                    <th>Customer</th>
+                    <th>GSTIN</th>
+                    <th class="text-right">Taxable</th>
+                    <th class="text-right">CGST</th>
+                    <th class="text-right">SGST</th>
+                    <th class="text-right">IGST</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in invoices %}
+                <tr>
+                    <td>{{ inv.invoice_date.strftime('%d-%m-%Y') }}</td>
+                    <td><a href="{{ url_for('billing.view', id=inv.id) }}">{{ inv.invoice_number }}</a></td>
+                    <td>{{ inv.party.name if inv.party else 'Cash' }}</td>
+                    <td>{{ inv.party.gstin if inv.party else '-' }}</td>
+                    <td class="number">₹{{ "%.2f"|format(inv.subtotal|float) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(inv.cgst_amount|float) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(inv.sgst_amount|float) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(inv.igst_amount|float) }}</td>
+                    <td class="number"><strong>₹{{ "%.2f"|format(inv.total_amount|float) }}</strong></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted">No sales in this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td colspan="4">Total</td>
+                    <td class="number">₹{{ "%.2f"|format(totals.subtotal) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(totals.cgst) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(totals.sgst) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(totals.igst) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(totals.total) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

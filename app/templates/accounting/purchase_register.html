@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Purchase Register{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Purchase Register</h1>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>From</label>
+            <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>To</label>
+            <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Bills</div>
+        <div class="stat-value">{{ purchases|length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Purchases</div>
+        <div class="stat-value">₹{{ "%.2f"|format(totals.total) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total GST</div>
+        <div class="stat-value">₹{{ "%.2f"|format(totals.cgst + totals.sgst + totals.igst) }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Invoice No</th>
+                    <th>Supplier</th>
+                    <th>GSTIN</th>
+                    <th class="text-right">Taxable</th>
+                    <th class="text-right">GST</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in purchases %}
+                <tr>
+                    <td>{{ p.purchase_date.strftime('%d-%m-%Y') }}</td>
+                    <td>{{ p.invoice_number }}</td>
+                    <td>{{ p.party.name if p.party else '-' }}</td>
+                    <td>{{ p.party.gstin if p.party else '-' }}</td>
+                    <td class="number">₹{{ "%.2f"|format(p.subtotal|float) }}</td>
+                    <td class="number">₹{{ "%.2f"|format((p.cgst_amount|float) + (p.sgst_amount|float) + (p.igst_amount|float)) }}</td>
+                    <td class="number"><strong>₹{{ "%.2f"|format(p.total_amount|float) }}</strong></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No purchases in this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td colspan="4">Total</td>
+                    <td class="number">₹{{ "%.2f"|format(totals.subtotal) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(totals.cgst + totals.sgst + totals.igst) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(totals.total) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

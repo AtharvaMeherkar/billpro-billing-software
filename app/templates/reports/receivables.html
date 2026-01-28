@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Receivables Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Receivables (Debtors)</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Receivable</div>
+        <div class="stat-value warning">₹{{ "%.2f"|format(total) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Customers with Balance</div>
+        <div class="stat-value">{{ customers|length }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>GSTIN</th>
+                    <th class="text-right">Balance</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in customers %}
+                <tr>
+                    <td><a href="{{ url_for('ledgers.view', id=c.id) }}">{{ c.name }}</a></td>
+                    <td>{{ c.phone or '-' }}</td>
+                    <td>{{ c.gstin or '-' }}</td>
+                    <td class="number text-danger">₹{{ "%.2f"|format(c.current_balance|float) }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('ledgers.view', id=c.id) }}" class="btn btn-sm btn-secondary">View Ledger</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No outstanding receivables</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td colspan="3">Total</td>
+                    <td class="number">₹{{ "%.2f"|format(total) }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

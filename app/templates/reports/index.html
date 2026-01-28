@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Reports</h1>
+</div>
+
+<div class="form-row">
+    <div class="card">
+        <div class="card-header">Sales Reports</div>
+        <div class="card-body">
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <a href="{{ url_for('reports.sales_report') }}">📊 Sales Report</a>
+                    <small class="text-muted" style="display: block;">Date-wise sales summary with totals</small>
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <a href="{{ url_for('reports.product_sales_report') }}">📦 Product-wise Sales</a>
+                    <small class="text-muted" style="display: block;">Sales breakdown by product</small>
+                </li>
+                <li style="padding: 8px 0;">
+                    <a href="{{ url_for('reports.gst_report') }}">🧾 GST Summary</a>
+                    <small class="text-muted" style="display: block;">CGST, SGST, IGST breakup</small>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Outstanding Reports</div>
+        <div class="card-body">
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <a href="{{ url_for('reports.receivables_report') }}">💰 Receivables (Debtors)</a>
+                    <small class="text-muted" style="display: block;">Amount to be received from customers</small>
+                </li>
+                <li style="padding: 8px 0;">
+                    <a href="{{ url_for('reports.payables_report') }}">💸 Payables (Creditors)</a>
+                    <small class="text-muted" style="display: block;">Amount to be paid to suppliers</small>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Inventory Reports</div>
+        <div class="card-body">
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <a href="{{ url_for('inventory.low_stock') }}">⚠️ Low Stock</a>
+                    <small class="text-muted" style="display: block;">Products below minimum stock</small>
+                </li>
+                <li style="padding: 8px 0;">
+                    <a href="{{ url_for('inventory.valuation') }}">📊 Stock Valuation</a>
+                    <small class="text-muted" style="display: block;">Current inventory value</small>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

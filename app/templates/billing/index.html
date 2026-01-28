@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Sales Invoices</h1>
+    <div class="page-actions">
+        <a href="{{ url_for('billing.new') }}" class="btn btn-primary">+ New Invoice</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; flex-wrap: wrap; gap: 16px;">
+        <div class="filter-group">
+            <label>Search</label>
+            <input type="text" name="search" value="{{ request.args.get('search', '') }}" 
+                   placeholder="Invoice # or Customer" class="form-control form-control-sm" style="width: 200px;">
+        </div>
+        <div class="filter-group">
+            <label>From Date</label>
+            <input type="date" name="date_from" value="{{ request.args.get('date_from', '') }}" 
+                   class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>To Date</label>
+            <input type="date" name="date_to" value="{{ request.args.get('date_to', '') }}" 
+                   class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>Payment</label>
+            <select name="payment_mode" class="form-control form-control-sm">
+                <option value="">All</option>
+                <option value="CASH" {% if request.args.get('payment_mode') == 'CASH' %}selected{% endif %}>Cash</option>
+                <option value="BANK" {% if request.args.get('payment_mode') == 'BANK' %}selected{% endif %}>Bank</option>
+                <option value="CREDIT" {% if request.args.get('payment_mode') == 'CREDIT' %}selected{% endif %}>Credit</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<!-- Invoices Table -->
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice No</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Subtotal</th>
+                    <th>Tax</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if invoices.items %}
+                    {% for inv in invoices.items %}
+                    <tr>
+                        <td><a href="{{ url_for('billing.view', id=inv.id) }}">{{ inv.invoice_number }}</a></td>
+                        <td>{{ inv.invoice_date.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ inv.party.name }}</td>
+                        <td class="number">₹{{ "%.2f"|format(inv.subtotal|float) }}</td>
+                        <td class="number">₹{{ "%.2f"|format(inv.tax_amount|float) }}</td>
+                        <td class="number"><strong>₹{{ "%.2f"|format(inv.total_amount|float) }}</strong></td>
+                        <td>
+                            {% if inv.payment_mode == 'CASH' %}
+                                <span class="badge badge-success">Cash</span>
+                            {% elif inv.payment_mode == 'BANK' %}
+                                <span class="badge badge-info">Bank</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Credit</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if inv.status == 'CANCELLED' %}
+                                <span class="badge badge-danger">Cancelled</span>
+                            {% elif inv.payment_status == 'PAID' %}
+                                <span class="badge badge-success">Paid</span>
+                            {% else %}
+                                <span class="badge badge-warning">Unpaid</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            <a href="{{ url_for('billing.view', id=inv.id) }}" class="btn btn-sm btn-secondary">View</a>
+                            <a href="{{ url_for('billing.print_invoice', id=inv.id) }}" class="btn btn-sm btn-secondary" target="_blank">Print</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">No invoices found</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if invoices.pages > 1 %}
+<div class="pagination">
+    {% if invoices.has_prev %}
+        <a href="{{ url_for('billing.index', page=invoices.prev_num, **request.args) }}">← Prev</a>
+    {% endif %}
+    
+    {% for page in invoices.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if page %}
+            <a href="{{ url_for('billing.index', page=page, **request.args) }}" 
+               class="{% if page == invoices.page %}active{% endif %}">{{ page }}</a>
+        {% else %}
+            <span>...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if invoices.has_next %}
+        <a href="{{ url_for('billing.index', page=invoices.next_num, **request.args) }}">Next →</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

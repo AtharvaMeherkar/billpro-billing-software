@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}GST Summary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">GST Summary</h1>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>From</label>
+            <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>To</label>
+            <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        </div>
+    </form>
+</div>
+
+<!-- Output Tax (Sales) -->
+<div class="card">
+    <div class="card-header">Output Tax (GST on Sales)</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Particulars</th>
+                    <th class="text-right">Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Taxable Value</td>
+                    <td class="number">₹{{ "%.2f"|format(sales_summary.taxable) }}</td>
+                </tr>
+                <tr>
+                    <td>CGST</td>
+                    <td class="number">₹{{ "%.2f"|format(sales_summary.cgst) }}</td>
+                </tr>
+                <tr>
+                    <td>SGST</td>
+                    <td class="number">₹{{ "%.2f"|format(sales_summary.sgst) }}</td>
+                </tr>
+                <tr>
+                    <td>IGST</td>
+                    <td class="number">₹{{ "%.2f"|format(sales_summary.igst) }}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td>Total Output Tax</td>
+                    <td class="number">₹{{ "%.2f"|format(sales_summary.total_tax) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- Input Tax (Purchases) -->
+<div class="card">
+    <div class="card-header">Input Tax Credit (GST on Purchases)</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Particulars</th>
+                    <th class="text-right">Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Taxable Value</td>
+                    <td class="number">₹{{ "%.2f"|format(purchase_summary.taxable) }}</td>
+                </tr>
+                <tr>
+                    <td>CGST</td>
+                    <td class="number">₹{{ "%.2f"|format(purchase_summary.cgst) }}</td>
+                </tr>
+                <tr>
+                    <td>SGST</td>
+                    <td class="number">₹{{ "%.2f"|format(purchase_summary.sgst) }}</td>
+                </tr>
+                <tr>
+                    <td>IGST</td>
+                    <td class="number">₹{{ "%.2f"|format(purchase_summary.igst) }}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td>Total Input Credit</td>
+                    <td class="number">₹{{ "%.2f"|format(purchase_summary.total_tax) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- Net Liability -->
+<div class="card">
+    <div class="card-header">Net GST Liability</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tax Head</th>
+                    <th class="text-right">Output</th>
+                    <th class="text-right">Input</th>
+                    <th class="text-right">Net Payable</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CGST</td>
+                    <td class="number">₹{{ "%.2f"|format(sales_summary.cgst) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(purchase_summary.cgst) }}</td>
+                    <td class="number {% if net_liability.cgst > 0 %}text-danger{% else %}text-success{% endif %}">
+                        ₹{{ "%.2f"|format(net_liability.cgst) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>SGST</td>
+                    <td class="number">₹{{ "%.2f"|format(sales_summary.sgst) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(purchase_summary.sgst) }}</td>
+                    <td class="number {% if net_liability.sgst > 0 %}text-danger{% else %}text-success{% endif %}">
+                        ₹{{ "%.2f"|format(net_liability.sgst) }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>IGST</td>
+                    <td class="number">₹{{ "%.2f"|format(sales_summary.igst) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(purchase_summary.igst) }}</td>
+                    <td class="number {% if net_liability.igst > 0 %}text-danger{% else %}text-success{% endif %}">
+                        ₹{{ "%.2f"|format(net_liability.igst) }}
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td>Total</td>
+                    <td class="number">₹{{ "%.2f"|format(sales_summary.total_tax) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(purchase_summary.total_tax) }}</td>
+                    <td class="number {% if net_liability.total > 0 %}text-danger{% else %}text-success{% endif %}">
+                        ₹{{ "%.2f"|format(net_liability.total) }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p class="text-muted">
+            {% if net_liability.total > 0 %}
+                <strong>GST Payable:</strong> ₹{{ "%.2f"|format(net_liability.total) }} to be paid to Government
+            {% else %}
+                <strong>ITC Excess:</strong> ₹{{ "%.2f"|format(net_liability.total|abs) }} Input Credit to carry forward
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endblock %}

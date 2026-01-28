@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BillPro{% endblock %} - Billing Software</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">BillPro</h1>
+                <span class="tagline">Billing & Accounting</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                
+                <div class="nav-group">
+                    <span class="nav-group-title">Sales</span>
+                    <a href="{{ url_for('billing.index') }}" class="nav-item {% if request.blueprint == 'billing' %}active{% endif %}">
+                        <span class="nav-icon">📝</span>
+                        Invoices
+                    </a>
+                    <a href="{{ url_for('billing.new') }}" class="nav-item">
+                        <span class="nav-icon">➕</span>
+                        New Invoice
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <span class="nav-group-title">Inventory</span>
+                    <a href="{{ url_for('inventory.index') }}" class="nav-item {% if request.blueprint == 'inventory' %}active{% endif %}">
+                        <span class="nav-icon">📦</span>
+                        Products
+                    </a>
+                    <a href="{{ url_for('inventory.low_stock') }}" class="nav-item">
+                        <span class="nav-icon">⚠️</span>
+                        Low Stock
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <span class="nav-group-title">Parties</span>
+                    <a href="{{ url_for('ledgers.index') }}?type=customer" class="nav-item {% if request.blueprint == 'ledgers' %}active{% endif %}">
+                        <span class="nav-icon">👥</span>
+                        Customers
+                    </a>
+                    <a href="{{ url_for('ledgers.index') }}?type=supplier" class="nav-item">
+                        <span class="nav-icon">🏭</span>
+                        Suppliers
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <span class="nav-group-title">Accounting</span>
+                    <a href="{{ url_for('accounting.index') }}" class="nav-item {% if request.blueprint == 'accounting' %}active{% endif %}">
+                        <span class="nav-icon">📒</span>
+                        Overview
+                    </a>
+                    <a href="{{ url_for('accounting.sales_register') }}" class="nav-item">
+                        <span class="nav-icon">📗</span>
+                        Sales Register
+                    </a>
+                    <a href="{{ url_for('accounting.expense_register') }}" class="nav-item">
+                        <span class="nav-icon">💸</span>
+                        Expenses
+                    </a>
+                    <a href="{{ url_for('accounting.cash_book') }}" class="nav-item">
+                        <span class="nav-icon">💵</span>
+                        Cash Book
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <span class="nav-group-title">Payroll</span>
+                    <a href="{{ url_for('payroll.index') }}" class="nav-item {% if request.blueprint == 'payroll' %}active{% endif %}">
+                        <span class="nav-icon">👷</span>
+                        Employees
+                    </a>
+                    <a href="{{ url_for('payroll.salary_slips') }}" class="nav-item">
+                        <span class="nav-icon">💰</span>
+                        Salary Slips
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <span class="nav-group-title">Reports</span>
+                    <a href="{{ url_for('reports.index') }}" class="nav-item {% if request.blueprint == 'reports' %}active{% endif %}">
+                        <span class="nav-icon">📈</span>
+                        Reports
+                    </a>
+                    <a href="{{ url_for('einvoice.index') }}" class="nav-item {% if request.blueprint == 'einvoice' %}active{% endif %}">
+                        <span class="nav-icon">🧾</span>
+                        E-Invoice
+                    </a>
+                </div>
+                
+                <div class="nav-group">
+                    <span class="nav-group-title">Settings</span>
+                    <a href="{{ url_for('settings') }}" class="nav-item">
+                        <span class="nav-icon">⚙️</span>
+                        Settings
+                    </a>
+                    <a href="{{ url_for('printing.settings') }}" class="nav-item">
+                        <span class="nav-icon">🖨️</span>
+                        Printer
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <small>{{ company.name if company else 'BillPro' }}</small>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}">
+                    {{ message }}
+                    <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+            
+            <!-- Page Content -->
+            <div class="page-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

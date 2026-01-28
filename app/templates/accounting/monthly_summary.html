@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Summary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Monthly Summary - {{ year }}</h1>
+</div>
+
+<div class="filter-bar">
+    <form method="get" class="form-inline" style="width: 100%; gap: 16px;">
+        <div class="filter-group">
+            <label>Year</label>
+            <select name="year" class="form-control form-control-sm">
+                {% for y in range(year - 2, year + 2) %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-secondary btn-sm">View</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th class="text-right">Sales</th>
+                    <th class="text-right">Purchases</th>
+                    <th class="text-right">Expenses</th>
+                    <th class="text-right">Gross Profit</th>
+                    <th class="text-right">Net Profit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set total_sales = namespace(value=0) %}
+                {% set total_purchases = namespace(value=0) %}
+                {% set total_expenses = namespace(value=0) %}
+                {% for m in months_data %}
+                {% set total_sales.value = total_sales.value + m.sales %}
+                {% set total_purchases.value = total_purchases.value + m.purchases %}
+                {% set total_expenses.value = total_expenses.value + m.expenses %}
+                <tr>
+                    <td>{{ m.month }}</td>
+                    <td class="number">₹{{ "%.2f"|format(m.sales) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(m.purchases) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(m.expenses) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(m.gross_profit) }}</td>
+                    <td class="number {% if m.net_profit > 0 %}text-success{% elif m.net_profit < 0 %}text-danger{% endif %}">
+                        ₹{{ "%.2f"|format(m.net_profit) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #f5f5f5; font-weight: bold;">
+                    <td>Total</td>
+                    <td class="number">₹{{ "%.2f"|format(total_sales.value) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(total_purchases.value) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(total_expenses.value) }}</td>
+                    <td class="number">₹{{ "%.2f"|format(total_sales.value - total_purchases.value) }}</td>
+                    <td class="number {% if (total_sales.value - total_purchases.value - total_expenses.value) > 0 %}text-success{% else %}text-danger{% endif %}">
+                        ₹{{ "%.2f"|format(total_sales.value - total_purchases.value - total_expenses.value) }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

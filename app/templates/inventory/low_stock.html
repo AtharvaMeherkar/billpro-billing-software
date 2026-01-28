@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Low Stock{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Low Stock Alert</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Products Below Threshold</div>
+        <div class="stat-value warning">{{ products|length }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Code</th>
+                    <th>Category</th>
+                    <th class="text-right">Current Stock</th>
+                    <th class="text-right">Min Stock</th>
+                    <th class="text-right">Shortage</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr>
+                    <td><a href="{{ url_for('inventory.view', id=p.id) }}">{{ p.name }}</a></td>
+                    <td>{{ p.code or '-' }}</td>
+                    <td>{{ p.category.name if p.category else '-' }}</td>
+                    <td class="number text-danger">{{ p.current_stock }} {{ p.unit }}</td>
+                    <td class="number">{{ p.low_stock_threshold }} {{ p.unit }}</td>
+                    <td class="number text-warning">{{ (p.low_stock_threshold - p.current_stock)|int }} {{ p.unit }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('inventory.view', id=p.id) }}" class="btn btn-sm btn-secondary">View</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-success">All products are sufficiently stocked!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

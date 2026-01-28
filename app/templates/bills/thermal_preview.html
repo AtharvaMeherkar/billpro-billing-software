@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Preview - {{ invoice.invoice_number }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .preview-controls {
+            background: #fff;
+            padding: 15px 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .preview-controls a, .preview-controls button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .btn-print {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-print:hover {
+            background: #1976D2;
+        }
+        
+        .btn-back {
+            background: #666;
+            color: white;
+        }
+        
+        .btn-back:hover {
+            background: #555;
+        }
+        
+        .thermal-paper {
+            background: #fff;
+            width: 80mm;
+            min-height: 200mm;
+            padding: 3mm;
+            font-size: 11px;
+            line-height: 1.4;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .shop-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .shop-address {
+            font-size: 10px;
+        }
+        
+        .invoice-info {
+            border-bottom: 1px dashed #000;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+        }
+        
+        .customer-info {
+            border-bottom: 1px dashed #000;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .items-header {
+            display: flex;
+            font-weight: bold;
+            font-size: 10px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+        
+        .items-header .col-name { flex: 3; }
+        .items-header .col-qty { flex: 1; text-align: center; }
+        .items-header .col-rate { flex: 1.5; text-align: right; }
+        .items-header .col-amt { flex: 1.5; text-align: right; }
+        
+        .item-row {
+            display: flex;
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+        
+        .item-row .col-name { flex: 3; overflow: hidden; text-overflow: ellipsis; }
+        .item-row .col-qty { flex: 1; text-align: center; }
+        .item-row .col-rate { flex: 1.5; text-align: right; }
+        .item-row .col-amt { flex: 1.5; text-align: right; }
+        
+        .totals {
+            border-top: 1px dashed #000;
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+        }
+        
+        .total-row.grand-total {
+            font-size: 14px;
+            font-weight: bold;
+            border-top: 1px solid #000;
+            padding-top: 4px;
+            margin-top: 4px;
+        }
+        
+        .footer {
+            text-align: center;
+            border-top: 1px dashed #000;
+            padding-top: 8px;
+            margin-top: 12px;
+            font-size: 10px;
+        }
+        
+        .footer-line {
+            margin-bottom: 2px;
+        }
+        
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+            .preview-controls {
+                display: none;
+            }
+            .thermal-paper {
+                box-shadow: none;
+                width: 80mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-controls">
+        <span style="color: #666;">📄 Thermal Receipt Preview</span>
+        <a href="{{ url_for('billing.print_thermal', id=invoice.id) }}" class="btn-print">🖨️ Print to Thermal</a>
+        <button onclick="window.print()" class="btn-print">🖨️ Print this Preview</button>
+        <a href="{{ url_for('billing.view', id=invoice.id) }}" class="btn-back">← Back to Invoice</a>
+    </div>
+    
+    <div class="thermal-paper">
+        <!-- Header -->
+        <div class="header">
+            <div class="shop-name">{{ printer_config.get('header', {}).get('line1', company.get('name', 'Morning Basket')) }}</div>
+            <div class="shop-address">{{ printer_config.get('header', {}).get('line2', '') }}</div>
+            <div class="shop-address">{{ printer_config.get('header', {}).get('line3', '') }}</div>
+            <div class="shop-address">{{ printer_config.get('header', {}).get('line4', '') }}</div>
+        </div>
+        
+        <!-- Invoice Info -->
+        <div class="invoice-info">
+            <div class="info-row">
+                <span>Bill No: {{ invoice.invoice_number }}</span>
+                <span>{{ invoice.invoice_date.strftime('%d-%m-%Y') }}</span>
+            </div>
+            <div class="info-row">
+                <span>Time: {{ invoice.created_at.strftime('%H:%M') if invoice.created_at else '' }}</span>
+                <span>{{ invoice.payment_mode or 'CASH' }}</span>
+            </div>
+        </div>
+        
+        <!-- Customer Info -->
+        {% if invoice.party %}
+        <div class="customer-info">
+            <div style="font-size: 10px;"><strong>Customer:</strong> {{ invoice.party.name }}</div>
+            {% if invoice.party.phone %}
+            <div style="font-size: 10px;">Ph: {{ invoice.party.phone }}</div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <!-- Items Header -->
+        <div class="items-header">
+            <span class="col-name">Item</span>
+            <span class="col-qty">Qty</span>
+            <span class="col-rate">Rate</span>
+            <span class="col-amt">Amount</span>
+        </div>
+        
+        <!-- Items -->
+        {% for item in invoice.items %}
+        <div class="item-row">
+            <span class="col-name">{{ item.description[:20] }}</span>
+            <span class="col-qty">{{ item.quantity|int }}</span>
+            <span class="col-rate">{{ "%.0f"|format(item.rate|float) }}</span>
+            <span class="col-amt">{{ "%.2f"|format(item.total_amount|float) }}</span>
+        </div>
+        {% endfor %}
+        
+        <!-- Totals -->
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal</span>
+                <span>₹{{ "%.2f"|format(invoice.subtotal|float) }}</span>
+            </div>
+            {% if invoice.is_gst_invoice %}
+                {% if invoice.cgst_amount and invoice.cgst_amount > 0 %}
+                <div class="total-row">
+                    <span>CGST</span>
+                    <span>₹{{ "%.2f"|format(invoice.cgst_amount|float) }}</span>
+                </div>
+                {% endif %}
+                {% if invoice.sgst_amount and invoice.sgst_amount > 0 %}
+                <div class="total-row">
+                    <span>SGST</span>
+                    <span>₹{{ "%.2f"|format(invoice.sgst_amount|float) }}</span>
+                </div>
+                {% endif %}
+                {% if invoice.igst_amount and invoice.igst_amount > 0 %}
+                <div class="total-row">
+                    <span>IGST</span>
+                    <span>₹{{ "%.2f"|format(invoice.igst_amount|float) }}</span>
+                </div>
+                {% endif %}
+            {% endif %}
+            {% if invoice.discount_amount and invoice.discount_amount > 0 %}
+            <div class="total-row">
+                <span>Discount</span>
+                <span>-₹{{ "%.2f"|format(invoice.discount_amount|float) }}</span>
+            </div>
+            {% endif %}
+            <div class="total-row grand-total">
+                <span>TOTAL</span>
+                <span>₹{{ "%.2f"|format(invoice.total_amount|float) }}</span>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-line">{{ printer_config.get('footer', {}).get('line1', 'Thank you for your purchase!') }}</div>
+            <div class="footer-line">{{ printer_config.get('footer', {}).get('line2', '') }}</div>
+            <div class="footer-line">{{ printer_config.get('footer', {}).get('line3', '') }}</div>
+        </div>
+    </div>
+</body>
+</html>
