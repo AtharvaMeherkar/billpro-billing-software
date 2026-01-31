@@ -333,26 +333,34 @@ class WindowsPrinter:
             import win32ui
             from PIL import Image, ImageDraw, ImageFont
             
-            # Create receipt image
-            line_height = 20
-            width = 400 if self.chars_per_line > 40 else 280
-            height = len(lines) * line_height + 40
+            # Create receipt image - 58mm paper = ~384 pixels at 203 DPI (standard thermal)
+            line_height = 24
+            width = 384 if self.chars_per_line <= 32 else 576  # 58mm = 384px, 80mm = 576px
+            height = len(lines) * line_height + 30
             
             img = Image.new('RGB', (width, height), 'white')
             draw = ImageDraw.Draw(img)
             
+            # Use larger font for thermal printer readability
             try:
-                font = ImageFont.truetype('consola.ttf', 14)
+                font = ImageFont.truetype('consola.ttf', 18)  # Larger font for 58mm
+                font_bold = ImageFont.truetype('consolab.ttf', 18)
             except:
-                font = ImageFont.load_default()
+                try:
+                    font = ImageFont.truetype('cour.ttf', 18)
+                    font_bold = font
+                except:
+                    font = ImageFont.load_default()
+                    font_bold = font
             
-            y = 10
+            y = 5
             for align, text in lines:
                 if align == 'center':
-                    text_width = draw.textlength(text, font=font)
+                    text_bbox = draw.textbbox((0, 0), text, font=font)
+                    text_width = text_bbox[2] - text_bbox[0]
                     x = (width - text_width) // 2
                 else:
-                    x = 10
+                    x = 5  # Minimal left margin
                 
                 draw.text((x, y), text, fill='black', font=font)
                 y += line_height

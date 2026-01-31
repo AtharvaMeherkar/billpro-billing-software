@@ -1,6 +1,6 @@
 {
     "printer_type": "windows",
-    "printer_name": "Default",
+    "printer_name": "POS58 Printer",
     "usb_vendor_id": null,
     "usb_product_id": null,
     "serial_port": "COM1",
@@ -17,7 +17,7 @@
     },
     "footer": {
         "line1": "Thank you for your purchase!",
-        "line2": "You may check our different baskets at the WhatsApp Business Catalogue ",
+        "line2": "Visit our WhatsApp Business Catalogue",
         "line3": "Visit again"
     },
     "thermal_settings": {
